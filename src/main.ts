@@ -11,7 +11,7 @@ async function bootstrap() {
     credentials: true, // Permite el envío de credenciales (cookies, cabeceras de autorización, etc.)
   });
 
-  const PORT = process.env.PORT ?? 3000; // Usa el puerto establecido en la variable de entorno o el puerto 3001 por defecto
+  const PORT = process.env.PORT ?? 3007; // Usa el puerto establecido en la variable de entorno o el puerto 3001 por defecto
 
   await app.listen(PORT); // Inicia el servidor en el puerto especificado
 }
