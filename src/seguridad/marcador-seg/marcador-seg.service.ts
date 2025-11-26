@@ -26,11 +26,11 @@ export class MarcadorSegService {
   }
 
   findAll() {
-    return this.repository.find({ relations: ['delitos'] });
+    return this.repository.find({ relations: ['delitos', 'delincuentes'] });
   }
 
   findOne(id: number) {
-    return this.repository.findOne({ where: { id }, relations: ['delitos'] });
+    return this.repository.findOne({ where: { id }, relations: ['delitos', 'delincuentes'] });
   }
 
   async update(id: number, dto: UpdateMarcadorSegDto) {
