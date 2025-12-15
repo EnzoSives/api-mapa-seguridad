@@ -6,13 +6,13 @@ export class Delito {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: true })
   articulo: string;
 
-  @Column()
+  @Column({ nullable: true })
   inciso: string;
 
-  @Column()
+  @Column({ nullable: true })
   tipoDelito: string;
 
   @ManyToOne(() => MarcadorSeg, (marcador) => marcador.delitos, {

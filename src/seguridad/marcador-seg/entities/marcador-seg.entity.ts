@@ -45,7 +45,7 @@ export class MarcadorSeg {
   // @Column({ type: 'timestamp', nullable: true })
   // fecha_fin: Date;
 
-  @Column({ nullable: true })
+  @Column({ unique: true, nullable: true })
   numero_denuncia: string;
 
   @Column({ nullable: true })
