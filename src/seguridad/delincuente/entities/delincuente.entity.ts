@@ -9,7 +9,7 @@ export class Delincuente {
   @Column()
   nombre: string;
 
-  @Column({ unique: true })
+  @Column({ nullable: true })
   dni: string;
 
   @ManyToOne(() => MarcadorSeg, (marcador) => marcador.delincuentes, {
