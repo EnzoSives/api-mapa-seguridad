@@ -1,4 +1,5 @@
 // src/seguridad/marcador-seg/dto/create-marcador-seg.dto.ts
+import { CreateDelincuenteDto } from 'src/seguridad/delincuente/dto/create-delincuente.dto';
 import { CreateDelitoDto } from '../../delito/dto/create-delito.dto';
 
 export class CreateMarcadorSegDto {
@@ -16,4 +17,5 @@ export class CreateMarcadorSegDto {
   numero_denuncia?: string;
   fiscal?: string;
   barrio?: string;
+  delincuentes?: CreateDelincuenteDto[];
 }

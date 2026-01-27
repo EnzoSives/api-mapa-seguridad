@@ -1,6 +1,6 @@
 // src/seguridad/marcador-seg/entities/marcador-seg.entity.ts
 
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, JoinTable, ManyToMany } from 'typeorm';
 import { Delito } from '../../delito/entities/delito.entity';
 import { Delincuente } from '../../delincuente/entities/delincuente.entity';
 
@@ -59,8 +59,13 @@ export class MarcadorSeg {
   })
   delitos: Delito[];
 
-  @OneToMany(() => Delincuente, (delincuente) => delincuente.marcadorSeg, {
-    cascade: true,
+@ManyToMany(() => Delincuente, (delincuente) => delincuente.marcadores, {
+    cascade: ['insert', 'update'], // Opcional: para guardar delincuentes al guardar el marcador
+  })
+  @JoinTable({
+    name: 'marcador_seg_delincuentes', // Nombre explícito para la tabla intermedia
+    joinColumn: { name: 'marcadorSegId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'delincuenteId', referencedColumnName: 'id' },
   })
   delincuentes: Delincuente[];
 }

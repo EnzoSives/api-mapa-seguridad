@@ -6,6 +6,7 @@ import { MarcadorSeg } from './entities/marcador-seg.entity';
 import { CreateMarcadorSegDto } from './dto/create-marcador-seg.dto';
 import { UpdateMarcadorSegDto } from './dto/update-marcador-seg.dto';
 import { Delito } from '../delito/entities/delito.entity';
+import { Delincuente } from '../delincuente/entities/delincuente.entity';
 
 @Injectable()
 export class MarcadorSegService {
@@ -14,14 +15,53 @@ export class MarcadorSegService {
     private readonly repository: Repository<MarcadorSeg>,
     @InjectRepository(Delito)
     private readonly delitoRepository: Repository<Delito>,
+    @InjectRepository(Delincuente)
+    private readonly delincuenteRepository: Repository<Delincuente>,
   ) {}
 
-  create(dto: CreateMarcadorSegDto) {
-    const { delitos, ...marcadorData } = dto;
+  async create(dto: CreateMarcadorSegDto) {
+    // 1. Extraemos 'delincuentes' del DTO
+    const { delitos, delincuentes, ...marcadorData } = dto;
+
     const marcadorSeg = this.repository.create(marcadorData);
+
+    // 2. Manejo de Delitos
     if (delitos) {
-      marcadorSeg.delitos = delitos.map(delitoDto => this.delitoRepository.create(delitoDto));
+      marcadorSeg.delitos = delitos.map((delitoDto) =>
+        this.delitoRepository.create(delitoDto),
+      );
     }
+
+    // 3. NUEVA LÓGICA CON CONSEJO PRO: Normalización
+    if (delincuentes && delincuentes.length > 0) {
+      const listaDelincuentesReales: Delincuente[] = [];
+
+      for (const dDto of delincuentes) {
+        // --- CONSEJO PRO: Normalizar nombre ---
+        // Quitamos espacios y convertimos a Mayúsculas para evitar duplicados por formato
+        const nombreNormalizado = dDto.nombre.trim().toUpperCase();
+
+        // A. Buscamos usando el nombre normalizado
+        const existente = await this.delincuenteRepository.findOne({
+          where: { nombre: nombreNormalizado },
+        });
+
+        if (existente) {
+          // B. Si existe, lo usamos
+          listaDelincuentesReales.push(existente);
+        } else {
+          // C. Si no existe, creamos uno nuevo FORZANDO el nombre normalizado
+          const nuevo = this.delincuenteRepository.create({
+            ...dDto,
+            nombre: nombreNormalizado, // Sobrescribimos con el limpio
+          });
+          listaDelincuentesReales.push(nuevo);
+        }
+      }
+
+      marcadorSeg.delincuentes = listaDelincuentesReales;
+    }
+
     return this.repository.save(marcadorSeg);
   }
 
@@ -30,30 +70,68 @@ export class MarcadorSegService {
   }
 
   findOne(id: number) {
-    return this.repository.findOne({ where: { id }, relations: ['delitos', 'delincuentes'] });
+    return this.repository.findOne({
+      where: { id },
+      relations: ['delitos', 'delincuentes'],
+    });
   }
 
   async update(id: number, dto: UpdateMarcadorSegDto) {
-    const marcador = await this.repository.findOne({ where: { id }, relations: ['delitos'] });
+    // 1. Buscamos el marcador con sus relaciones
+    const marcador = await this.repository.findOne({
+      where: { id },
+      relations: ['delitos', 'delincuentes'],
+    });
+
     if (!marcador) {
       throw new NotFoundException(`MarcadorSeg with ID ${id} not found`);
     }
 
-    const { delitos, ...marcadorData } = dto;
-    
-    // Actualiza las propiedades del MarcadorSeg
+    const { delitos, delincuentes, ...marcadorData } = dto;
+
+    // Actualiza propiedades simples
     this.repository.merge(marcador, marcadorData);
 
-    // Si se proporcionan delitos, los actualiza
+    // 2. Lógica de Delitos
     if (delitos) {
-      // Elimina los delitos anteriores
       if (marcador.delitos) {
         await this.delitoRepository.remove(marcador.delitos);
       }
-      // Agrega los nuevos delitos
-      marcador.delitos = delitos.map(delitoDto => this.delitoRepository.create(delitoDto));
+      marcador.delitos = delitos.map((delitoDto) =>
+        this.delitoRepository.create(delitoDto),
+      );
     }
-    
+
+    // 3. NUEVA LÓGICA CON CONSEJO PRO EN UPDATE
+    if (delincuentes) {
+      const listaDelincuentesActualizados: Delincuente[] = [];
+
+      for (const dDto of delincuentes) {
+        // --- CONSEJO PRO: Normalizar nombre ---
+        const nombreNormalizado = dDto.nombre.trim().toUpperCase();
+
+        const existente = await this.delincuenteRepository.findOne({
+          where: { nombre: nombreNormalizado },
+        });
+
+        if (existente) {
+          // B. Existe: lo reutilizamos
+          // Opcional: Si quisieras actualizar datos extra (ej. DNI)
+          // if (dDto.dni) existente.dni = dDto.dni; 
+          listaDelincuentesActualizados.push(existente);
+        } else {
+          // C. No existe: creamos uno nuevo normalizado
+          const nuevo = this.delincuenteRepository.create({
+            ...dDto,
+            nombre: nombreNormalizado,
+          });
+          listaDelincuentesActualizados.push(nuevo);
+        }
+      }
+
+      marcador.delincuentes = listaDelincuentesActualizados;
+    }
+
     return this.repository.save(marcador);
   }
 
