@@ -54,6 +54,13 @@ export class MarcadorSeg {
   @Column({ nullable: true })
   barrio: string;
 
+  @Column({
+    type: 'enum',
+    enum: ['esclarecido', 'no_esclarecido'],
+    nullable: true,
+  })
+  estado_causa: 'esclarecido' | 'no_esclarecido';
+
   @OneToMany(() => Delito, (delito) => delito.marcadorSeg, {
     cascade: true,
   })

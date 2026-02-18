@@ -17,5 +17,6 @@ export class CreateMarcadorSegDto {
   numero_denuncia?: string;
   fiscal?: string;
   barrio?: string;
+  estado_causa?: 'esclarecido' | 'no_esclarecido';
   delincuentes?: CreateDelincuenteDto[];
 }

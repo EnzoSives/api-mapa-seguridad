@@ -19,7 +19,7 @@ import { MarcadorSegModule } from './seguridad/marcador-seg/marcador-seg.module'
       password: '%#zn7ajqx0qrljLr',
       database: 'mapa-seguridad',
       entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: false,
+      synchronize: true,
     }),
     AuthModule,
     UserModule,
